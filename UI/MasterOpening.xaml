@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="BIM Digital Design"
-        Height="450" Width="500" >
+        Height="550" Width="650" >
 
     <Window.Resources>
         <ResourceDictionary>
@@ -13,29 +13,85 @@
     </Window.Resources>
 
     <Grid>
-
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <!-- Header -->
+            <RowDefinition Height="50"/>
+            <!-- Main Content Area -->
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <!-- Footer -->
+            <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
 
-        <!-- Use a TextBlock with TitleText style instead of Label styled as TextBox.
-             Applying a Style whose TargetType is TextBox to a Label causes XAML errors
-             because some setters target properties that Label doesn't have. -->
-        <TextBlock Grid.Row="0"
-                   Grid.ColumnSpan="3"
-                   HorizontalAlignment="Center"
-                   Style="{StaticResource TitleText}"
-                   Text="Master Opening and Sleeves"/>
+        <!-- HEADER -->
+        <Border Grid.Row="0" Background="#1E1E1E">
+            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" 
+                       Margin="20,0,0,0" FontSize="18" FontWeight="SemiBold" Foreground="White"
+                       Text="MASTER OPENING &amp; SLEEVES"/>
+        </Border>
 
+        <!-- MAIN CONTENT (Split View) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280"/>
+                <!-- Left Settings Panel -->
+                <ColumnDefinition Width="*"/>
+                <!-- Right Data/Preview Panel -->
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT PANEL: Settings & Configuration -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="15">
+                <StackPanel>
+
+                    <TextBlock Text="1. MEP ELEMENTS" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <CheckBox Content="Pipes" Margin="0,0,0,5" Name="CheckBoxPipes"/>
+                    <CheckBox Content="Ducts" Margin="0,0,0,5" Name="CheckBoxDucts"/>
+                    <CheckBox Content="Cable Trays" Margin="0,0,0,15" Name="CheckBoxCable"/>
+
+                    <TextBlock Text="2. HOST ELEMENTS" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <CheckBox Content="Walls" Margin="0,0,0,5" Name="CheckBoxWall"/>
+                    <CheckBox Content="Floors / Ceilings" Margin="0,0,0,5" Name="CheckBoxFloor"/>
+                    <CheckBox Content="Beam / Column" Margin="0,0,0,15" Name="CheckBoxBeam"/>
+
+                    <TextBlock Text="3. OPENING SETTINGS" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <!-- Opening Method -->
+                    <RadioButton Content="Use Native Openings" IsChecked="True" Margin="0,0,0,5"/>
+                    <RadioButton Content="Use Family Sleeves" Margin="0,0,0,15"/>
+
+                    <!-- Clearances -->
+                    <TextBlock Text="Added Clearance (mm):" Margin="0,0,0,5"/>
+                    <TextBox Width="100" HorizontalAlignment="Left" Text="50" Margin="0,0,0,15" Name="TBClear"/>
+
+                    <CheckBox Content="Merge Overlapping Clashes" IsChecked="True" Margin="0,0,0,15"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- RIGHT PANEL: Data Grid Preview -->
+            <Border Grid.Column="1" Margin="10" BorderBrush="LightGray" BorderThickness="1">
+                <DataGrid HeadersVisibility="Column" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="Process" Width="60" />
+                        <DataGridTextColumn Header="MEP Type" Width="100"/>
+                        <DataGridTextColumn Header="Host Type" Width="100"/>
+                        <DataGridTextColumn Header="Status" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <!-- FOOTER: Actions & Progress -->
+        <Border Grid.Row="2" Background="#F0F0F0" Padding="15,0">
+            <Grid>
+                <ProgressBar Height="10" VerticalAlignment="Center" Margin="0,0,250,0" Value="0" Maximum="100"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Scan For Clashes" Width="120" Height="30" Margin="0,0,10,0" Click="ScanClash"/>
+                    <Button Content="Create Openings" Width="120" Height="30" Background="#007ACC" Foreground="White" FontWeight="Bold" Click="CreateOpening"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
     </Grid>
+
 
 </Window>

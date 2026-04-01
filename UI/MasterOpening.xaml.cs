@@ -3,6 +3,7 @@ using Autodesk.Revit.UI;
 using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+using DataLab;
 
 namespace RevitUI.UI
 {
@@ -25,6 +26,8 @@ namespace RevitUI.UI
 
         private Document _doc;
         private UIDocument _uidoc;
+
+        //Add ExternalHandler 
 
         public static void GetOrCreate(Document doc, UIDocument uidoc)
         {
@@ -52,6 +55,9 @@ namespace RevitUI.UI
             InitializeComponent();
             _doc = doc;
             _uidoc = uidoc;
+            info();
+
+            //Set External Event Handler for Clash Detection and Opening Creation
         }
 
         private void ToggleTheme(bool isDark)
@@ -68,5 +74,27 @@ namespace RevitUI.UI
 
         private void DarkMode_On(object sender, RoutedEventArgs e) => ToggleTheme(true);
         private void DarkMode_Off(object sender, RoutedEventArgs e) => ToggleTheme(false);
+
+        public void info()
+        {
+            //This is Host Element for MEP:
+            var cableTrays = _doc.GetCableTrays();
+            var ducts = _doc.GetDucts();
+            var pipes = _doc.GetPipes();
+
+            //This is for Linked Model:
+
+            var linkedPipes = _doc.GetLinkedPipes();
+        }
+
+        private void ScanClash(object sender, RoutedEventArgs e)
+        {
+            TaskDialog.Show("Clash Detection", "Clash detection has been initiated successfully.");
+        }
+
+        private void CreateOpening(object sender, RoutedEventArgs e)
+        {
+            TaskDialog.Show("Create Opening", "An opening has been created successfully.");
+        }
     }
 }
