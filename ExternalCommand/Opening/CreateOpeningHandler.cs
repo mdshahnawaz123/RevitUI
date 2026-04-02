@@ -348,96 +348,185 @@ namespace RevitUI.UI
             var sym = doc.GetElement(SleeveSymbolId) as FamilySymbol;
             if (sym == null) return false;
 
-            // Ensure symbol is active
-            if (!sym.IsActive)
-                sym.Activate();
+            if (!sym.IsActive) sym.Activate();
 
-            // Compute orientation: align family instance's local X with the stored wall direction
             var dir = new XYZ(item.WallDirX, item.WallDirY, item.WallDirZ);
             if (dir.IsAlmostEqualTo(XYZ.Zero)) dir = XYZ.BasisX;
             dir = dir.Normalize();
 
-            // Place family instance at center. Use Family placement; choose StructuralType.NonStructural
             FamilyInstance fi = null;
+
+            // 1) Try face-hosted placement if a nearby face exists
             try
             {
-                fi = doc.Create.NewFamilyInstance(center, sym, StructuralType.NonStructural);
-            }
-            catch
-            {
-                // Some family symbols require host or different overload; try level-based placement
-                var lvl = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().FirstOrDefault();
-                if (lvl != null)
+                var opts = new Options { ComputeReferences = true, DetailLevel = ViewDetailLevel.Fine };
+                var geom = host.get_Geometry(opts);
+                if (geom != null)
                 {
-                    try { fi = doc.Create.NewFamilyInstance(center, sym, lvl, Autodesk.Revit.DB.Structure.StructuralType.NonStructural); } catch { }
-                }
-            }
-
-            if (fi == null) return false;
-
-            // Rotate instance so its local X aligns with dir — find rotation angle in XY plane
-            var angle = Math.Atan2(dir.Y, dir.X) - Math.Atan2(1, 0);
-            var axis = Line.CreateBound(center, center + XYZ.BasisZ);
-            try { ElementTransformUtils.RotateElement(doc, fi.Id, axis, angle); } catch { }
-
-            // Attempt to cut the host using available API helpers (try InstanceVoidCutUtils or HostObjectUtils via reflection)
-            try
-            {
-                var revitAsm = typeof(Element).Assembly;
-
-                // Try InstanceVoidCutUtils.AddInstanceVoidCut(Document, FamilyInstance, Element)
-                var ivType = revitAsm.GetType("Autodesk.Revit.DB.InstanceVoidCutUtils");
-                if (ivType != null)
-                {
-                    var methods = ivType.GetMethods(BindingFlags.Public | BindingFlags.Static);
-                    foreach (var m in methods)
+                    Face bestFace = null;
+                    double bestDist = double.MaxValue;
+                    foreach (GeometryObject go in geom)
                     {
-                        if (m.Name.IndexOf("AddInstanceVoidCut", StringComparison.OrdinalIgnoreCase) >= 0)
+                        if (go is Solid s)
                         {
-                            var parms = m.GetParameters();
-                            var args = new List<object?>();
-                            if (parms.Length == 3 && parms[0].ParameterType == typeof(Document))
-                                args = new List<object?>() { doc, fi, host };
-                            else if (parms.Length == 2)
-                                args = new List<object?>() { fi, host };
-
-                            if (args.Count > 0)
+                            foreach (Face f in s.Faces)
                             {
-                                try { m.Invoke(null, args.ToArray()); break; } catch { }
+                                try
+                                {
+                                    var proj = f.Project(center);
+                                    if (proj != null)
+                                    {
+                                        var pt = proj.XYZPoint;
+                                        var d = pt.DistanceTo(center);
+                                        if (d < bestDist)
+                                        {
+                                            bestDist = d;
+                                            bestFace = f;
+                                        }
+                                    }
+                                }
+                                catch { }
                             }
                         }
                     }
-                }
 
-                // Fallback: try HostObjectUtils methods like PerformCut/Cut via reflection
-                var hoType = revitAsm.GetType("Autodesk.Revit.DB.HostObjectUtils");
-                if (hoType != null)
-                {
-                    var hoMethods = hoType.GetMethods(BindingFlags.Public | BindingFlags.Static);
-                    foreach (var m in hoMethods)
+                    if (bestFace != null && bestDist < 3.0) // tolerance in feet
                     {
-                        if (m.Name.IndexOf("Cut", StringComparison.OrdinalIgnoreCase) >= 0 || m.Name.IndexOf("PerformCut", StringComparison.OrdinalIgnoreCase) >= 0)
+                        // Try possible NewFamilyInstance overloads that accept a Reference
+                        var creator = doc.Create;
+                        var methods = creator.GetType().GetMethods().Where(m => m.Name == "NewFamilyInstance");
+                        var rf = bestFace.Reference;
+                        var candidates = new List<object?[]>
                         {
-                            var parms = m.GetParameters();
-                            var args = new List<object?>();
-                            // try Document, Element, Element
-                            if (parms.Length == 3 && parms[0].ParameterType == typeof(Document))
-                                args = new List<object?>() { doc, host, fi };
-                            else if (parms.Length == 2)
-                                args = new List<object?>() { host, fi };
+                            new object?[] { rf, center, sym },
+                            new object?[] { rf, sym, center }
+                        };
 
-                            if (args.Count > 0)
+                        foreach (var m in methods)
+                        {
+                            foreach (var args in candidates)
                             {
-                                try { m.Invoke(null, args.ToArray()); break; } catch { }
+                                try
+                                {
+                                    var created = m.Invoke(creator, args);
+                                    if (created is FamilyInstance createdFi)
+                                    {
+                                        fi = createdFi;
+                                        break;
+                                    }
+                                }
+                                catch { }
                             }
+                            if (fi != null) break;
                         }
                     }
                 }
             }
             catch { }
 
-            item.Status = "Done ✓";
-            return true;
+            // 2) Fallback: point or level placement
+            if (fi == null)
+            {
+                try
+                {
+                    fi = doc.Create.NewFamilyInstance(center, sym, StructuralType.NonStructural);
+                }
+                catch
+                {
+                    var lvl = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().FirstOrDefault();
+                    if (lvl != null)
+                    {
+                        try { fi = doc.Create.NewFamilyInstance(center, sym, lvl, StructuralType.NonStructural); } catch { }
+                    }
+                }
+            }
+
+            if (fi == null) return false;
+
+            // Align family origin to center (compensate internal origin offsets)
+            try
+            {
+                var bb = fi.get_BoundingBox(null);
+                if (bb != null)
+                {
+                    var bbCenter = (bb.Min + bb.Max) / 2;
+                    var delta = center - bbCenter;
+                    if (!delta.IsAlmostEqualTo(XYZ.Zero)) ElementTransformUtils.MoveElement(doc, fi.Id, delta);
+                }
+            }
+            catch { }
+
+            // Rotate instance about Z to align with run direction
+            try
+            {
+                var angle = Math.Atan2(dir.Y, dir.X) - Math.Atan2(1, 0);
+                var axis = Line.CreateBound(center, center + XYZ.BasisZ);
+                ElementTransformUtils.RotateElement(doc, fi.Id, axis, angle);
+            }
+            catch { }
+
+            // 3) Attempt to cut host with instance void or host utilities via reflection
+            try
+            {
+                var revitAsm = typeof(Element).Assembly;
+
+                var ivType = revitAsm.GetType("Autodesk.Revit.DB.InstanceVoidCutUtils");
+                if (ivType != null)
+                {
+                    var methods = ivType.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                    foreach (var m in methods.Where(x => x.Name.IndexOf("AddInstanceVoidCut", StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        try
+                        {
+                            var parms = m.GetParameters();
+                            if (parms.Length == 3 && parms[0].ParameterType == typeof(Document)) m.Invoke(null, new object?[] { doc, fi, host });
+                            else if (parms.Length == 2) m.Invoke(null, new object?[] { fi, host });
+                        }
+                        catch { }
+                    }
+                }
+
+                var hoType = revitAsm.GetType("Autodesk.Revit.DB.HostObjectUtils");
+                if (hoType != null)
+                {
+                    var hoMethods = hoType.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                    foreach (var m in hoMethods.Where(x => x.Name.IndexOf("Cut", StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        try
+                        {
+                            var parms = m.GetParameters();
+                            if (parms.Length == 3 && parms[0].ParameterType == typeof(Document)) m.Invoke(null, new object?[] { doc, host, fi });
+                            else if (parms.Length == 2) m.Invoke(null, new object?[] { host, fi });
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
+
+            // Diagnostic log
+            try
+            {
+                var lines = new List<string>();
+                lines.Add($"Sleeve placement for Clash MEPId={item.MEPId} HostId={item.HostId}");
+                if (fi != null)
+                {
+                    lines.Add($"Placed FamilyInstance Id={fi.Id} Symbol={sym.Family?.Name}/{sym.Name}");
+                    var bb = fi.get_BoundingBox(null);
+                    if (bb != null) lines.Add($"Instance bbox: Min={bb.Min}, Max={bb.Max}");
+                }
+                else
+                {
+                    lines.Add("Placement failed: no FamilyInstance created.");
+                }
+
+                var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"sleeve_place_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+                System.IO.File.WriteAllLines(path, lines);
+                item.Status = fi != null ? "Done ✓" : ("Failed: sleeve not placed. See log: " + path);
+            }
+            catch { }
+
+            return fi != null;
         }
     }
 }

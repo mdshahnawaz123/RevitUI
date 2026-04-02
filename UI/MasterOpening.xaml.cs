@@ -91,10 +91,9 @@ namespace RevitUI.UI
             try
             {
                 var symbols = new FilteredElementCollector(_doc)
-                    .OfClass(typeof(FamilySymbol))
-                    .Cast<FamilySymbol>()
-                    .OrderBy(s => s.Family?.Name)
-                    .ThenBy(s => s.Name)
+                    .OfClass(typeof(FamilyInstance))
+                    .Cast<FamilyInstance>()
+                    .OrderBy(s => s.Name)
                     .ToList();
 
                 SleeveCombo.ItemsSource = symbols;
@@ -106,11 +105,13 @@ namespace RevitUI.UI
         private void RadioNative_Checked(object sender, RoutedEventArgs e)
         {
             if (SleeveCombo != null) SleeveCombo.Visibility = System.Windows.Visibility.Collapsed;
+            if (TxtSleeveComing != null) TxtSleeveComing.Visibility = System.Windows.Visibility.Collapsed;
         }
 
         private void RadioSleeve_Checked(object sender, RoutedEventArgs e)
         {
             if (SleeveCombo != null) SleeveCombo.Visibility = System.Windows.Visibility.Visible;
+            if (TxtSleeveComing != null) TxtSleeveComing.Visibility = System.Windows.Visibility.Visible;
         }
 
         // ── Model info (read-only, no transaction needed) ─────────────────────

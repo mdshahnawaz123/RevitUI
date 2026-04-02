@@ -75,10 +75,12 @@
                     <RadioButton x:Name="RadioSleeve" Content="Use Family Sleeves"
                                  Margin="0,0,0,6" Checked="RadioSleeve_Checked"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                         <TextBlock Text="Sleeve Family:" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <ComboBox x:Name="SleeveCombo" Width="220" Visibility="Collapsed" DisplayMemberPath="Name"/>
                     </StackPanel>
+
+                    <TextBlock x:Name="TxtSleeveComing" Text="Family Sleeves feature coming soon — not yet available." Foreground="OrangeRed" Visibility="Collapsed" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
                     <TextBlock Text="Added Clearance (mm):" Margin="0,0,0,4"/>
                     <TextBox Name="TBClear" Text="50" Width="90"
