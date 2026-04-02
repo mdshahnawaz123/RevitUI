@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="BIM Digital Design"
-        Height="550" Width="650" >
+        Height="690" Width="760" ResizeMode="NoResize">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -14,84 +14,141 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <!-- Header -->
             <RowDefinition Height="50"/>
-            <!-- Main Content Area -->
+            <!-- Header         -->
             <RowDefinition Height="*"/>
-            <!-- Footer -->
-            <RowDefinition Height="60"/>
+            <!-- Content        -->
+            <RowDefinition Height="65"/>
+            <!-- Footer         -->
         </Grid.RowDefinitions>
 
-        <!-- HEADER -->
+        <!-- ── HEADER ──────────────────────────────────────────────────────── -->
         <Border Grid.Row="0" Background="#1E1E1E">
-            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" 
-                       Margin="20,0,0,0" FontSize="18" FontWeight="SemiBold" Foreground="White"
-                       Text="MASTER OPENING &amp; SLEEVES"/>
+            <Grid>
+                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Margin="20,0,0,0" FontSize="17" FontWeight="SemiBold"
+                           Foreground="White" Text="MASTER OPENING &amp; SLEEVES"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Margin="0,0,15,0">
+                    <TextBlock Text="Dark mode" Foreground="#AAAAAA"
+                               VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"/>
+                    <ToggleButton x:Name="ToggleDark" Width="38" Height="20"
+                                  Checked="DarkMode_On" Unchecked="DarkMode_Off"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- MAIN CONTENT (Split View) -->
+        <!-- ── CONTENT ─────────────────────────────────────────────────────── -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280"/>
-                <!-- Left Settings Panel -->
+                <ColumnDefinition Width="270"/>
+                <!-- Left settings  -->
                 <ColumnDefinition Width="*"/>
-                <!-- Right Data/Preview Panel -->
+                <!-- Right DataGrid -->
             </Grid.ColumnDefinitions>
 
-            <!-- LEFT PANEL: Settings & Configuration -->
-            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="15">
+            <!-- LEFT PANEL -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="14">
                 <StackPanel>
 
-                    <TextBlock Text="1. MEP ELEMENTS" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <CheckBox Content="Pipes" Margin="0,0,0,5" Name="CheckBoxPipes"/>
-                    <CheckBox Content="Ducts" Margin="0,0,0,5" Name="CheckBoxDucts"/>
-                    <CheckBox Content="Cable Trays" Margin="0,0,0,15" Name="CheckBoxCable"/>
+                    <!-- 1. MEP Elements -->
+                    <TextBlock Text="1. MEP ELEMENTS" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <TextBlock Text="(host model and all loaded links)"
+                               FontSize="11" Foreground="Gray" Margin="0,0,0,8"/>
+                    <CheckBox Content="Pipes"       Name="CheckBoxPipes"  Margin="0,0,0,4"/>
+                    <CheckBox Content="Ducts"       Name="CheckBoxDucts"  Margin="0,0,0,4"/>
+                    <CheckBox Content="Cable Trays" Name="CheckBoxCable"  Margin="0,0,0,14"/>
 
-                    <TextBlock Text="2. HOST ELEMENTS" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <CheckBox Content="Walls" Margin="0,0,0,5" Name="CheckBoxWall"/>
-                    <CheckBox Content="Floors / Ceilings" Margin="0,0,0,5" Name="CheckBoxFloor"/>
-                    <CheckBox Content="Beam / Column" Margin="0,0,0,15" Name="CheckBoxBeam"/>
+                    <!-- 2. Host Elements -->
+                    <TextBlock Text="2. HOST ELEMENTS" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <TextBlock Text="(openings are always cut in the host model)"
+                               FontSize="11" Foreground="Gray" Margin="0,0,0,8"/>
+                    <CheckBox Content="Walls"                Name="CheckBoxWall"   Margin="0,0,0,4"/>
+                    <CheckBox Content="Floors"               Name="CheckBoxFloor"  Margin="0,0,0,4"/>
+                    <CheckBox Content="Ceilings"             Name="CheckBoxCeil"   Margin="0,0,0,4"/>
+                    <CheckBox Content="Beams / Columns"      Name="CheckBoxBeam"   Margin="0,0,0,14"/>
 
-                    <TextBlock Text="3. OPENING SETTINGS" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <!-- Opening Method -->
-                    <RadioButton Content="Use Native Openings" IsChecked="True" Margin="0,0,0,5"/>
-                    <RadioButton Content="Use Family Sleeves" Margin="0,0,0,15"/>
+                    <!-- 3. Settings -->
+                    <TextBlock Text="3. OPENING SETTINGS" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <RadioButton x:Name="RadioNative" Content="Use Native Openings" IsChecked="True"
+                                 Margin="0,0,0,4" Checked="RadioNative_Checked"/>
+                    <RadioButton x:Name="RadioSleeve" Content="Use Family Sleeves"
+                                 Margin="0,0,0,6" Checked="RadioSleeve_Checked"/>
 
-                    <!-- Clearances -->
-                    <TextBlock Text="Added Clearance (mm):" Margin="0,0,0,5"/>
-                    <TextBox Width="100" HorizontalAlignment="Left" Text="50" Margin="0,0,0,15" Name="TBClear"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <TextBlock Text="Sleeve Family:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox x:Name="SleeveCombo" Width="220" Visibility="Collapsed" DisplayMemberPath="Name"/>
+                    </StackPanel>
 
-                    <CheckBox Content="Merge Overlapping Clashes" IsChecked="True" Margin="0,0,0,15"/>
+                    <TextBlock Text="Added Clearance (mm):" Margin="0,0,0,4"/>
+                    <TextBox Name="TBClear" Text="50" Width="90"
+                             HorizontalAlignment="Left" Margin="0,0,0,14"/>
+
+                    <CheckBox Content="Merge Overlapping Clashes" IsChecked="True"
+                              Name="CheckMerge" Margin="0,0,0,14"/>
+
+                    <CheckBox Content="Only in Active View" Name="CheckOnlyActiveView" Margin="0,0,12,14"/>
+
+                    <!-- Summary card -->
+                    <Border Background="#F4F4F4" CornerRadius="5" Padding="10" Margin="0,4,0,0">
+                        <StackPanel>
+                            <TextBlock Text="SCAN SUMMARY" FontWeight="Bold"
+                                       FontSize="11" Foreground="#555" Margin="0,0,0,6"/>
+                            <TextBlock x:Name="TxtClashCount" Text="Clashes found: —" FontSize="12"/>
+                            <TextBlock x:Name="TxtDoneCount"  Text="Openings done: —" FontSize="12" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
 
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- RIGHT PANEL: Data Grid Preview -->
-            <Border Grid.Column="1" Margin="10" BorderBrush="LightGray" BorderThickness="1">
-                <DataGrid HeadersVisibility="Column" AutoGenerateColumns="False">
+            <!-- RIGHT PANEL: DataGrid -->
+            <Border Grid.Column="1" Margin="10"
+                    BorderBrush="LightGray" BorderThickness="1">
+                <DataGrid x:Name="ClashGrid"
+                          HeadersVisibility="Column"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          SelectionMode="Extended"
+                          AlternatingRowBackground="#FAFAFA">
                     <DataGrid.Columns>
-                        <DataGridCheckBoxColumn Header="Process" Width="60" />
-                        <DataGridTextColumn Header="MEP Type" Width="100"/>
-                        <DataGridTextColumn Header="Host Type" Width="100"/>
-                        <DataGridTextColumn Header="Status" Width="*"/>
+                        <DataGridCheckBoxColumn Header="✓"
+                            Binding="{Binding Process, UpdateSourceTrigger=PropertyChanged}"
+                            Width="36"/>
+                        <DataGridTextColumn Header="MEP Type"
+                            Binding="{Binding MEPType}"   Width="85"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="MEP Source"
+                            Binding="{Binding MEPSource}" Width="110" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Host Type"
+                            Binding="{Binding HostType}"  Width="85"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Host ID"
+                            Binding="{Binding HostId}"    Width="65"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Status"
+                            Binding="{Binding Status}"    Width="*"   IsReadOnly="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
         </Grid>
 
-        <!-- FOOTER: Actions & Progress -->
-        <Border Grid.Row="2" Background="#F0F0F0" Padding="15,0">
+        <!-- ── FOOTER ──────────────────────────────────────────────────────── -->
+        <Border Grid.Row="2" Background="#F0F0F0" Padding="14,0">
             <Grid>
-                <ProgressBar Height="10" VerticalAlignment="Center" Margin="0,0,250,0" Value="0" Maximum="100"/>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Scan For Clashes" Width="120" Height="30" Margin="0,0,10,0" Click="ScanClash"/>
-                    <Button Content="Create Openings" Width="120" Height="30" Background="#007ACC" Foreground="White" FontWeight="Bold" Click="CreateOpening"/>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,280,0">
+                    <ProgressBar x:Name="ProgressBar" Height="8" Value="0" Maximum="100"/>
+                    <TextBlock x:Name="TxtProgress" Text="Ready."
+                               FontSize="11" Foreground="#666" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <Button Content="Scan For Clashes"  Width="130" Height="32"
+                            Margin="0,0,10,0" Click="ScanClash"/>
+                    <Button Content="Create Openings"   Width="130" Height="32"
+                            Background="#007ACC" Foreground="White"
+                            FontWeight="Bold" Click="CreateOpening"/>
                 </StackPanel>
             </Grid>
         </Border>
-
     </Grid>
-
-
 </Window>
