@@ -1,22 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Platforms>AnyCPU;x64</Platforms>
+		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
-		<!-- ✅ CRITICAL -->
 		<UseWPF>true</UseWPF>
 		<RootNamespace>RevitUI</RootNamespace>
+		<Prefer32Bit>false</Prefer32Bit>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2026.0.0" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\DataLab\DataLab.csproj" />
 	</ItemGroup>
-
 </Project>
