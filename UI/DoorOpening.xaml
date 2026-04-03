@@ -1,0 +1,43 @@
+﻿<Window x:Class="RevitUI.UI.DoorOpening"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:RevitUI.UI" 
+             Height="450" Width="800" Title="BIM Digital Design" ResizeMode="NoResize">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <!-- Header         -->
+            <RowDefinition Height="*"/>
+            <!-- Content        -->
+            <RowDefinition Height="65"/>
+            <!-- Footer         -->
+        </Grid.RowDefinitions>
+
+        <!-- ── HEADER ──────────────────────────────────────────────────────── -->
+        <Border Grid.Row="0" Background="#1E1E1E">
+            <Grid>
+                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                   Margin="20,0,0,0" FontSize="17" FontWeight="SemiBold"
+                   Foreground="White" Text="MASTER DOOR OPENING"/>
+                <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                    VerticalAlignment="Center" Margin="0,0,15,0">
+                    <TextBlock Text="Dark mode" Foreground="#AAAAAA"
+                       VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"/>
+                    <ToggleButton x:Name="ToggleDark" Width="38" Height="20"
+                          Checked="DarkMode_On" Unchecked="DarkMode_Off"/>
+                </StackPanel>-->
+            </Grid>
+        </Border>
+
+
+    </Grid>
+</Window>
